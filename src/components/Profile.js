@@ -1,7 +1,8 @@
 import { gql, useQuery } from '@apollo/client';
-import { useState } from 'react';
-import { useHistory } from 'react-router-dom';
+import React, { useCallback, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
+// GraphQL query for name, avatar image etc. of Github profiles
 const PROFILE_REQUEST = gql`
   query ProfileDisplay($username: String!) {
     user(login: $username) {
@@ -20,35 +21,50 @@ const PROFILE_REQUEST = gql`
   }
 `;
 export default function Profile() {
-  const [username, setUsername] = useState(window.location.pathname.slice(1));
-  const [search, setSearch] = useState(true);
-  console.log(search);
+  // username input
+  const [username, setUsername] = useState('');
+  // by default searched username is part of URL or undefined
+  const [search, setSearch] = useState(window.location.pathname.slice(1));
+
+  // setting variable for username which is then looked up after hitting search button
   const { loading, error, data } = useQuery(PROFILE_REQUEST, {
     variables: {
-      username: username,
+      username: search,
     },
   });
 
-  function updateurl(x) {
-    // history.push(x);
-  }
+  // after hitting search button URL path will be also updated and we can also search by changing URL path itself
+  const navigate = useNavigate();
+  const handleOnClick = useCallback(() => {
+    if (!username) {
+      return setSearch(window.location.pathname.slice(1));
+    }
+    setSearch(username);
+    navigate(`/${search}`, { replace: true });
+  }, [navigate, search, username]);
+
+  useEffect(() => {
+    handleOnClick();
+  }, [search]);
 
   return (
     <>
+      <br />
       <label>
-        Search for Github Profile{' '}
+        Search for Github Profile:{' '}
         <input
           value={username}
           onChange={(event) => {
             setUsername(event.currentTarget.value);
-            history.push(event.currentTarget.value);
           }}
         />
       </label>
-      {!username ? (
+      <button onClick={handleOnClick}>Search</button>
+      {/* in case search is still not define, don't display errors */}
+      {!search ? (
         ''
       ) : error ? (
-        <h1>You have an error {error.message}</h1>
+        <h1>You have an error: {error.message}</h1>
       ) : loading ? (
         <h1>Loading...</h1>
       ) : (

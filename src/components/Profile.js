@@ -35,17 +35,14 @@ export default function Profile() {
 
   // after hitting search button URL path will be also updated and we can also search by changing URL path itself
   const navigate = useNavigate();
+
   const handleOnClick = useCallback(() => {
-    if (!username) {
-      return setSearch(window.location.pathname.slice(1));
-    }
-    setSearch(username);
     navigate(`/${search}`, { replace: true });
-  }, [navigate, search, username]);
+  }, [navigate, search]);
 
   useEffect(() => {
     handleOnClick();
-  }, [search]);
+  }, [search, handleOnClick]);
 
   return (
     <>
@@ -59,7 +56,8 @@ export default function Profile() {
           }}
         />
       </label>
-      <button onClick={handleOnClick}>Search</button>
+      <button onClick={() => setSearch(username)}>Search</button>
+
       {/* in case search is still not define, don't display errors */}
       {!search ? (
         ''
